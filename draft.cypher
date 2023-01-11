@@ -41,5 +41,5 @@ MATCH (n) DELETE n;
 MATCH (e1:Editor{name:"Figaro"}),(a1:Article{ref:"a3"}) CREATE (e1)-[w1:WRITES{by:"John Papa"}]->(a1) RETURN e1,a1;
 
 
-// /4:00c090c6-4c9a-4170-9106-85484617ba31:6/4:00c090c6-4c9a-4170-9106-85484617ba31:0
+// /4:192ffc8d-e40b-40ce-807a-9667c6f7c5a5:4/4:192ffc8d-e40b-40ce-807a-9667c6f7c5a5:8
 MATCH (source:Editor),(target:Article) WHERE elementId(source) = "4:00c090c6-4c9a-4170-9106-85484617ba31:6" AND elementId(target) = "4:00c090c6-4c9a-4170-9106-85484617ba31:0" CREATE (source)-[x:WRITES{by:"Claire Chazal"}]->(target) RETURN x

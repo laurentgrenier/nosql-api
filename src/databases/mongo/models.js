@@ -106,17 +106,16 @@ class Doctors {
         })
     }
 
-    nearest(doctor, count){        
+    nearest(actor, count){        
         return this.model.find({
             location:{
                 '$near':{
-                    $geometry: {type:"Point", coordinates: [doctor.location.coordinates[0], doctor.location.coordinates[1]]},
+                    $geometry: {type:"Point", coordinates: [actor.location.coordinates[0], actor.location.coordinates[1]]},
                     $maxDistance: 9999999999
                   },
                 
-            },
-            _id: { $ne:  doctor._id}
-        }).sort({distance:1}).limit(count)
+            }
+        }).limit(count)
     }
 }
 
