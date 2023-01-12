@@ -3,12 +3,12 @@ const router = express.Router()
 const models = require('../databases/mongo/models')
 const caches = require('../databases/redis/models')
 const graph = require('../databases/neo4j/models')
+const blockchain = require('../databases/blockchain/models')
 
 
 // import models 
 const plagues = new models.Plagues()
 const doctors = new models.Doctors()
-
 
 // import caches 
 const usersCache = new caches.UsersCache()
@@ -18,6 +18,10 @@ const instantsPublisher = new caches.InstantsPublisher()
 const articlesNode = new graph.ArticlesNode()
 const editorsNode = new graph.EditorsNode()
 const writesRelation = new graph.WritesRelation()
+
+// import blockchain
+const notesChain = new blockchain.NotesChain()
+
 
 //////////////////////////////////////
 //             healthcheck
@@ -467,6 +471,54 @@ router.patch('/relations/writes/:id', async (req, res) => {
         res.status(500).json({message: error.message})
     }
 })
+
+//////////////////////////////////////
+//             BLOCKCHAIN
+//////////////////////////////////////
+// add some notes 
+router.post('/blockchain/notes', async (req, res) => {
+    try{
+        const data = notesChain.insertOne(req.body)
+        res.json(data)
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }        
+})
+
+// get the notes 
+router.get('/blockchain/notes/:id', async (req, res) => {
+    try{
+        const data = notesChain.findById(req.params.id)
+        res.json(data)
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }        
+})
+
+// add a note to the notes list
+router.patch('/blockchain/notes/:id', async (req, res) => {
+    try{
+        const data = notesChain.update(req.params.id, req.body)
+        res.json(data)
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }        
+})
+
+// delete a note from the notes list
+router.delete('/blockchain/notes/:id/note/:noteId', async (req, res) => {
+    try{
+        const data = notesChain.delete(req.params.id, req.params.noteId)
+        res.json(data)
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }        
+})
+
 
 
 module.exports = router;

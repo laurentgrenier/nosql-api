@@ -63,12 +63,6 @@ class UsersCache {
 class InstantsPublisher {
     constructor(){
         this.name = 'instants'       
-        /*this.publisher =  redis.createClient({
-            socket: {
-                host: process.env.REDIS_HOST,
-                port: process.env.REDIS_PORT
-            }
-          });*/
           // create subscriber 
         this.publisher = client.duplicate();
         this.publisher.connect();        
