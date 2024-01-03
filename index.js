@@ -8,6 +8,7 @@ const routes = require('./src/routes/routes');
 const mongoString = process.env.MONGO_URI;
 mongoose.set('strictQuery', false);
 
+
 // mongo db connection
 mongoose.connect(mongoString);
 const database = mongoose.connection;
@@ -17,7 +18,7 @@ database.on('error', (error) => {
 })
 
 database.once('connected', () => {
-    console.log('Database Connected');
+    console.log('MongoDB database connected');
 })
 
 // server instance
@@ -29,5 +30,6 @@ app.use('/api', routes)
 
 // server execution
 app.listen(3000, () => {
-    console.log(`Server Started at ${3000}`)
+    console.log(`NoSQL API started at ${3000}`)
 })
+
