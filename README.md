@@ -32,3 +32,16 @@ mkdir data
 ```
 
 Do not forget to add that folder to the .gitignore file. Data must not be stored to any repository.
+
+
+### Start the databases
+#### REDIS
+```shell
+docker pull redis:7.0.4-bullseye
+```
+```shell
+docker run -p 36379:6379 --name myredis -d redis:7.0.4-bullseye
+```
+
+
+npm install live-server -g

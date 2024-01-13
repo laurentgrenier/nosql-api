@@ -1,0 +1,21 @@
+<html>
+    <head>
+        <title></title>
+        <script src="./scripts/socket.io.min.js"></script>
+        <script>
+            const socket = io("http://localhost:3001");
+
+            socket.on("hello", (...args) => {
+                console.log(args);
+            });
+
+
+        </script>
+
+
+    </head>
+    <body>
+        
+        HELLO REDIS
+    </body>
+</html>

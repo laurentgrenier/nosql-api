@@ -519,6 +519,17 @@ router.delete('/blockchain/notes/:id/note/:noteId', async (req, res) => {
     }        
 })
 
+// 
+router.get('/blockchain/test', async (req, res) => {
+    try{
+        const data = notesChain.test()
+        res.json(data)
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }        
+})
+
 
 
 module.exports = router;

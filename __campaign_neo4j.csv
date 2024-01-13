@@ -1,0 +1,5 @@
+OriginPseudo,,TargetPseudo,,Sentiment,,Approbation,,,Message,,Retweet
+Alpha,,PoliticMan,,0.9,,0.9,,,Enfin quelqu'un de sensé.,,
+Beta,,Alpha,,0.5,,0.7,,,,,1,,
+Gamma,,Beta,,0.1,,0.9,,,Les gens qui s'opposent à ça sont horribles,,
+Delta,,Beta,,0.3,,0.1,,,C'est n'importe quoi,,

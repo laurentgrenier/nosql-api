@@ -33,13 +33,39 @@ const getBlockchainFileName = (user, name, id) => {
     return process.env.BLOCKCHAIN_EMULATION_FOLDER + "/blockchain_" + id + "_" + name + "_" + user + ".json"
 }
 
+const getBlockchainIds = (user, name) => {
+    var regexPattern = new RegExp("blockchain_[a-zA-Z0-9]{8,32}_" + name + "_" + user +  ".json", "g");    
+    return fs.readdirSync(process.env.BLOCKCHAIN_EMULATION_FOLDER)
+        .filter(file => file.match(regexPattern))            
+        .map(filename => filename.split("_")[1])
+}
+
 const readBlockchain = (user, name, id) => {
     var result = []
     try {
         const raw = fs.readFileSync(getBlockchainFileName(user, name, id))
         return JSON.parse(raw)        
     } catch (error) {
+        console.debug("error", error)
         console.debug("no file found")        
+    }
+    return result 
+}
+
+const readCluster = (user, name) => {
+    var result = []
+    try {
+        let raw =  null
+        console.debug("getBlockchainIds(user, name)", getBlockchainIds(user, name))
+        let ids = getBlockchainIds(user, name)
+        for(var i=0;i<ids.length;i++){
+            result.push(readBlockchain(user, name, ids[i]))            
+        }
+        return result
+    } catch (error) {
+        console.debug("error", error)
+        console.debug("no file found")        
+
     }
     return result
 }
@@ -74,3 +100,4 @@ exports.spreadBlockchain = spreadBlockchain
 exports.aggregateBlockchain = aggregateBlockchain
 exports.generateGUID = generateGUID
 exports.TransactionEnum = TransactionEnum
+exports.readCluster = readCluster

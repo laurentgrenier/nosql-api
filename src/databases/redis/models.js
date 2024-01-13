@@ -8,7 +8,10 @@ const client = redis.createClient({
   }
 });
 
-client.connect().then(() => console.debug("REDIS database connected"))
+client.connect().then(() => console.debug("REDIS database connected")).catch((error) => {
+    console.error("!!! REDIS database not connected")
+})
+
 
 class UsersCache {
     constructor(){
@@ -21,6 +24,7 @@ class UsersCache {
         this.subscriber.connect();
         // add a subscription
         this.subscriber.subscribe('instants', (instant) => {
+            
             console.log("user receive instant", instant); 
             this.instantReceivedHandler(JSON.parse(instant)).catch((error) => {
                 console.error("redis.UsersCache.constructor.instantReceivedHandler", error)
