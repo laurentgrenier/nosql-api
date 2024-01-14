@@ -21,6 +21,21 @@ class WritesRelation extends Relation {
     }    
 }
 
+class BlocksNode extends Node {
+    constructor(){
+        super('Block')
+    }
+}
+
+class ChainsRelation extends Relation {
+    constructor(){
+        super('CHAINED_TO', 'Block', 'Block')
+    }    
+}
+
+
 exports.ArticlesNode = ArticlesNode
 exports.EditorsNode = EditorsNode
 exports.WritesRelation = WritesRelation
+exports.BlocksNode = BlocksNode
+exports.ChainsRelation = ChainsRelation

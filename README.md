@@ -43,5 +43,11 @@ docker pull redis:7.0.4-bullseye
 docker run -p 36379:6379 --name myredis -d redis:7.0.4-bullseye
 ```
 
-
-npm install live-server -g
+#### Neo4J
+```shell
+docker run --restart always \
+    --name myneo4j \
+    -p7474:7474 -p7687:7687 -e NEO4J_AUTH=neo4j/s3cr3tio \
+    --volume=/Users/laurent/workspaces/mooke/data/neo4j:/data \
+    -d neo4j
+```

@@ -18,6 +18,8 @@ const instantsPublisher = new caches.InstantsPublisher()
 const articlesNode = new graph.ArticlesNode()
 const editorsNode = new graph.EditorsNode()
 const writesRelation = new graph.WritesRelation()
+const blocksNode = new graph.BlocksNode()
+const chainsRelation = new graph.ChainsRelation()
 
 // import blockchain
 const notesChain = new blockchain.NotesChain()
@@ -276,6 +278,135 @@ router.post('/instants/:id', async (req, res) => {
 })
 
 //////////////////////////////////////
+//             BLOCK NODE
+//////////////////////////////////////
+// get all blocks from the graph
+router.get('/nodes/blocks', async (req, res) => {
+    try{        
+        const data = await blocksNode.findAll()
+        res.json(data)
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }
+})
+
+// get a block
+router.get('/nodes/blocks/:id', async (req, res) => {
+    try{
+        const data = await blocksNode.findById(req.params.id)
+        res.json(data)
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }
+})
+
+// add a block
+router.post('/nodes/blocks', async (req, res) => {
+    try{
+        const data = await blocksNode.insertOne(req.body)
+        res.json(data)
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }
+})
+
+// add multiples blocks
+router.put('/nodes/blocks', async (req, res) => {
+    try{
+        const data = await articlesNode.insertMany(req.body)
+        res.json(data)
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }
+})
+
+// delete a block
+router.delete('/nodes/blocks/:id', async (req, res) => {
+    try{
+        const data = await blocksNode.delete(req.params.id)
+        res.json(data)
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }
+})
+
+// update a block
+router.patch('/nodes/blocks/:id', async (req, res) => {
+    try{
+        const data = await blocksNode.update(req.params.id, req.body)
+        res.json(data)
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }
+})
+//////////////////////////////////////
+//             CHAINED_TO
+//////////////////////////////////////
+// get all chain relations from the graph
+router.get('/relations/chains', async (req, res) => {
+    try{        
+        const data = await chainsRelation.findAll()
+        res.json(data)
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }
+})
+
+// add a chain relation
+router.post('/relations/chains/:fromNodeId/:toNodeId', async (req, res) => {
+    try{
+        const data = await chainsRelation.insertOne(req.params.fromNodeId, req.params.toNodeId, req.body)
+        res.json(data)
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }
+})
+
+// get a chain relation
+router.get('/relations/chains/:id', async (req, res) => {
+    try{
+        const data = await chainsRelation.findById(req.params.id)
+        res.json(data)
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }
+})
+
+// delete a chain relation
+router.delete('/relations/chains/:id', async (req, res) => {
+    try{
+        const data = await chainsRelation.delete(req.params.id)
+        res.json(data)
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }
+})
+
+// update a chain relation
+router.patch('/relations/chains/:id', async (req, res) => {
+    try{
+        const data = await chainsRelation.update(req.params.id, req.body)
+        res.json(data)
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }
+})
+
+
+
+
+//////////////////////////////////////
 //             ARTCILES
 //////////////////////////////////////
 // get all articles from the graph
@@ -343,7 +474,6 @@ router.patch('/nodes/articles/:id', async (req, res) => {
         res.status(500).json({message: error.message})
     }
 })
-
 
 //////////////////////////////////////
 //             EDITORS

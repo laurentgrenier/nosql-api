@@ -57,8 +57,10 @@ class Node {
         */
        const query = helpers.getNodeDeleteQuery(this.name, id)
         const result = await session.run(query)
+        
         try {
-            return result.summary.counters._stats
+            return {nodesDeleted:result.summary.counters._stats.nodesDeleted}
+
         } catch {
             // nothing   
         }
