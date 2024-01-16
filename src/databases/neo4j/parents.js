@@ -12,10 +12,27 @@ class Node {
         this.name = name
     }
 
-    async findAll(){        
-        const query = helpers.getNodeFindAllQuery(this.name) 
+    async findAll(kvs=null){
+        if (kvs){
+            const query = helpers.getNodeFindByKeysValuesQuery(this.name, kvs) 
+        } else {
+            const query = helpers.getNodeFindAllQuery(this.name)
+        }
+         
         const result = await session.run(query)        
         return helpers.parseNodesResult(result)
+    }
+
+    async find(kvs=null){
+        if (kvs){
+            const query = helpers.getNodeFindByKeysValuesQuery(this.name, kvs) 
+        } else {
+            const query = helpers.getNodeFindAllQuery(this.name)
+        }
+         
+        const result = await session.run(query)
+        const items = helpers.parseNodesResult(result)
+        return (items.length > 0?items[0]:null)
     }
 
     async insertOne(doc){          

@@ -76,6 +76,16 @@ const writeBlockchain = (user, name, id, blockchain) => {
     fs.writeFileSync(getBlockchainFileName(user, name, id), data);
 }
 
+const writeBlock = (user, name, id, block) => {
+    let data = JSON.stringify(block);    
+    const filename = getBlockchainFileName(user, name, id)
+    if (fs.existsSync(filename)){
+        fs.appendFileSync(filename, data);
+    } else {
+        fs.writeFileSync(filename, data);
+    }
+}
+
 const aggregateBlockchain = (name, id) => {
     // select an user randomly
     const users = JSON.parse(process.env.BLOCKCHAIN_USERS)
@@ -86,17 +96,34 @@ const aggregateBlockchain = (name, id) => {
 }
 
 const spreadBlockchain = (name, id, blockchain) => {
-    const users = JSON.parse(process.env.BLOCKCHAIN_USERS)
-    for(let user of users){
-        writeBlockchain(user, name, id, blockchain)
+    let hostnames = []
+    const users = JSON.parse(process.env.BLOCKCHAIN_USERS).sort(() => (Math.random() > .5) ? 1 : -1)
+    const replicationFactor = JSON.parse(process.env.BLOCKCHAIN_REPLICATION_FACTOR)
+    
+    for(var i=0;i<replicationFactor;i++){ 
+        writeBlockchain(users[i], name, id, blockchain)
+        hostnames.push(users[i])
     }
-    return true
+    return hostnames
+}
+
+const spreadBlock = (name, id, block) => {
+    let hostnames = []
+    const users = JSON.parse(process.env.BLOCKCHAIN_USERS).sort(() => (Math.random() > .5) ? 1 : -1)
+    const replicationFactor = JSON.parse(process.env.BLOCKCHAIN_REPLICATION_FACTOR)
+    
+    for(var i=0;i<replicationFactor;i++){ 
+        writeBlock(users[i], name, id, block)
+        hostnames.push(users[i])
+    }
+    return hostnames
 }
 
 exports.generateId = generateId
 exports.writeBlockchain = writeBlockchain
 exports.readBlockchain = readBlockchain
 exports.spreadBlockchain = spreadBlockchain
+exports.spreadBlock = spreadBlock
 exports.aggregateBlockchain = aggregateBlockchain
 exports.generateGUID = generateGUID
 exports.TransactionEnum = TransactionEnum

@@ -69,6 +69,8 @@ class Blockchain{
         block.hash = block.generateHash()
                 
         this.blockchain.push(block);
+        
+        return block
     }
 
     // testing the integrity of the chain

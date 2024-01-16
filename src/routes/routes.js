@@ -608,7 +608,7 @@ router.patch('/relations/writes/:id', async (req, res) => {
 // add some notes 
 router.post('/blockchain/notes', async (req, res) => {
     try{
-        const data = notesChain.insertOne(req.body)
+        const data = await notesChain.insertOne(req.body)
         res.json(data)
     }
     catch(error){

@@ -1,4 +1,4 @@
-
+const HostStatus = require('../../enums/blockdb.enums').HostStatusEnum
 const parents = require('./parents')
 const Node = parents.Node
 const Relation = parents.Relation
@@ -27,9 +27,25 @@ class BlocksNode extends Node {
     }
 }
 
+class HostsNode extends Node {
+    constructor(){
+        super('Host')
+    }
+
+    getActives(){
+        return this.findAll({active:HostStatus.ACTIVE})
+    }
+}
+
 class ChainsRelation extends Relation {
     constructor(){
         super('CHAINED_TO', 'Block', 'Block')
+    }    
+}
+
+class CopyOfRelation extends Relation {
+    constructor(){
+        super('COPY_OF', 'Block', 'Block')
     }    
 }
 
@@ -39,3 +55,5 @@ exports.EditorsNode = EditorsNode
 exports.WritesRelation = WritesRelation
 exports.BlocksNode = BlocksNode
 exports.ChainsRelation = ChainsRelation
+exports.CopyOfRelation = CopyOfRelation
+exports.HostsNode = HostsNode

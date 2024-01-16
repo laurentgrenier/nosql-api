@@ -40,7 +40,10 @@ Do not forget to add that folder to the .gitignore file. Data must not be stored
 docker pull redis:7.0.4-bullseye
 ```
 ```shell
-docker run -p 36379:6379 --name myredis -d redis:7.0.4-bullseye
+docker run --restart always \
+    -p 36379:6379 \
+    --name myredis \
+    -d redis:7.0.4-bullseye
 ```
 
 #### Neo4J
@@ -50,4 +53,12 @@ docker run --restart always \
     -p7474:7474 -p7687:7687 -e NEO4J_AUTH=neo4j/s3cr3tio \
     --volume=/Users/laurent/workspaces/mooke/data/neo4j:/data \
     -d neo4j
+```
+
+#### MongoDB
+```shell
+docker run --restart always \
+    -p 37017:27017 -v mongodata:/data/db \
+    --name mymongo \
+    -d mongo:4.2.3-bionic
 ```

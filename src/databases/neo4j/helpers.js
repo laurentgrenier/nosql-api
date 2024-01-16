@@ -18,6 +18,10 @@ const getNodeFindByIdQuery = (name, id) => {
     return 'MATCH (x:' + name + ') WHERE elementId(x) = \"' + id + '\" RETURN x'
 }
 
+const getNodeFindByKeysValuesQuery = (name, kvs) => {
+    return 'MATCH (x:' + name + ') WHERE ' + Object.keys(kvs).map(key => "x." + key + " = " + (typeof(kvs[key]) === "string"?"\"" + kvs[key] + "\"":kvs[key])).join(",") + ' RETURN x'
+}
+
 const parseNodesResult = (result) => {
     return result.records.map(r => {return {id:r._fields[0].elementId ,...r._fields[0].properties}});    
 }
@@ -58,6 +62,10 @@ const parseRelationResult = (result) => {
     return result.records.length > 0?result.records.map(r => {return {id:r._fields[0].elementId ,startId:r._fields[0].startNodeElementId, endId:r._fields[0].endNodeElementId,...r._fields[0].properties}})[0]:null 
 }
 
+// blockchain
+const getChainsNodesWithoutChild = (name, chainId) => {
+    return 'MATCH (x) WHERE NOT ()-[:' + name  + ']->(x) and a.chain_id = "' + chainId + '" return x'
+}
 
 exports.getNodeFindAllQuery = getNodeFindAllQuery
 exports.getNodeInsertOneQuery = getNodeInsertOneQuery
@@ -73,3 +81,4 @@ exports.getRelationDeleteQuery = getRelationDeleteQuery
 exports.getRelationFindByIdQuery = getRelationFindByIdQuery
 exports.parseRelationsResult = parseRelationsResult
 exports.parseRelationResult = parseRelationResult
+exports.getNodeFindByKeysValuesQuery = getNodeFindByKeysValuesQuery
