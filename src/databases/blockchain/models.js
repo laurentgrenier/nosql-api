@@ -5,10 +5,6 @@ class NotesChain extends Chain {
     constructor(){        
         super('notes')
     }
-
-    test(){        
-        return helpers.readCluster("lena","notes")
-    }
 }
 
 exports.NotesChain = NotesChain

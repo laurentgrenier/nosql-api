@@ -1,40 +1,49 @@
 const blockchains = require('./blockchains')
 const helpers = require('./helpers')
 const graph = require('../../databases/neo4j/models')
+const HostStatus = require('../../enums/blockdb.enums').HostStatusEnum
 
-const blocksNode = new graph.BlocksNode()
-const chainsRelation = new graph.ChainsRelation()
-const copyRelation = new graph.CopyOfRelation()
+const blocksNodes = new graph.BlocksNodes()
+const chainedToRelation = new graph.ChainedToRelation()
+const copyOfRelation = new graph.CopyOfRelation()
+const hostedByRelation = new graph.HostedByRelation()
+const hostsNode = new graph.HostsNode()
 
 class Chain {
     constructor(name){        
         this.name = name
     }
 
-    async mapBlock(block, chainId, hostnames, className, previousNodes=[]){
+    async mapBlock(block, chainId, hosts, className, previousNodes=[]){
         let nodes = {previous:previousNodes, current:[]}
         
         // add the block nodes to the graph
-        for(var i=0;i<hostnames.length;i++){
-            nodes.current.push(await blocksNode.insertOne({
-                block_id:block.index.toString(), 
+        for(var i=0;i<hosts.length;i++){
+            // create a node for the block
+            let blockNode = await blocksNodes.insertOne({
+                block_index:block.index.toString(), 
                 chain_id:chainId, 
-                class_name:className,                                 
-                hostname:hostnames[i]}))
+                class_name:className})
+
+            // add the node to current ones
+            nodes.current.push(blockNode)
+
+            // link the node with its host
+            await hostedByRelation.insertOne(blockNode.id, hosts[i].id, {chain_id:chainId})
         }
 
         // link between current blocks
         for(var i=0;i<nodes.current.length;i++){
             let others = nodes.current.filter(node => node.id != nodes.current[i].id)                
             for(var j=0;j<others.length;j++){
-                await copyRelation.insertOne(nodes.current[i].id, others[j].id, {chain_id:chainId, class_name:className})
+                await copyOfRelation.insertOne(nodes.current[i].id, others[j].id, {chain_id:chainId, class_name:className})
             }
         }
 
         // link with previous blocks
         for(var i=0; i<nodes.previous.length; i++){
             for(var j=0; j<nodes.current.length; j++){
-                await chainsRelation.insertOne(nodes.current[j].id, nodes.previous[i].id, 
+                await chainedToRelation.insertOne(nodes.current[j].id, nodes.previous[i].id, 
                     {
                         chain_id:chainId, 
                         class_name:className,
@@ -46,9 +55,25 @@ class Chain {
         return nodes.current
     }
 
+    async initHosts(){
+        let existingHost = null 
+        const hosts = helpers.getAllHosts()
+        for(var i=0;i<hosts.length;i++){
+            existingHost = await hostsNode.find({name:hosts[i].name})
+            
+            if (existingHost == null){
+                await hostsNode.insertOne({name:hosts[i].name, active:HostStatus.ACTIVE})
+            }
+            
+        }
+        return hosts
+    }
+
     async insertOne(doc){
-        //let nodes = {previous:[], current:[]}
+        await this.initHosts()
+        let usedHosts = []
         let previousNodes = []
+
         // create a new blockchain
         let blockchain = new blockchains.Blockchain();
 
@@ -56,39 +81,15 @@ class Chain {
         const id = helpers.generateId()        
 
         blockchain.add({id:helpers.generateGUID(), ...doc})
-        //console.debug("block: ", block)
-        //const hostnames = helpers.spreadBlockchain(this.name, id, blockchain.toJSON())      
         
+        const hosts = await hostsNode.getActives()        
+
         // add blocks to the graph
         for(var k=0;k<blockchain.blockchain.length;k++){
             let block = blockchain.blockchain[k]
-            let hostnames = helpers.spreadBlock(this.name, id, block.toJSON()) 
+            usedHosts = helpers.spreadBlockToHosts(this.name, id, block.toJSON(), hosts) 
             
-            // add the block nodes to the graph
-            /*for(var i=0;i<hostnames.length;i++){
-                nodes.current.push(await blocksNode.insertOne({block_id:block.index.toString(), chain_id:id, name:this.name, hostname:hostnames[i]}))
-            }
-
-            // link between current blocks
-            for(var i=0;i<nodes.current.length;i++){
-                let others = nodes.current.filter(node => node.id != nodes.current[i].id)                
-                for(var j=0;j<others.length;j++){
-                    await copyRelation.insertOne(nodes.current[i].id, others[j].id, {chain_id:id, name:this.name})
-                }
-            }
-    
-            // link with previous blocks
-            for(var i=0; i<nodes.previous.length; i++){
-                for(var j=0; j<nodes.current.length; j++){
-                    await chainsRelation.insertOne(nodes.current[j].id, nodes.previous[i].id, {chain_id:id, name:this.name})
-                }
-            }
-
-
-            nodes.previous = nodes.current
-            nodes.current = []*/
-
-            previousNodes = await this.mapBlock(block, id, hostnames, this.name, previousNodes)
+            previousNodes = await this.mapBlock(block, id, usedHosts, this.name, previousNodes)
         }
 
 
@@ -96,9 +97,11 @@ class Chain {
         return {id:id, commitedCount:1}
     }
 
-    findById(id){
+    async findById(chainId){
+        const chainNodesBlocks = await blocksNodes.getActivesChainNodesBlocks(chainId)        
+        
         // rebuild the blockchain from the blockchain owners
-        const raw = helpers.aggregateBlockchain(this.name, id)
+        const raw = helpers.aggregateBlockchain(this.name, chainId, chainNodesBlocks)
         
         // check blockchain integrity
         let blockchain = new blockchains.Blockchain(raw)
@@ -110,7 +113,7 @@ class Chain {
             
             // remove rollbacked transactions
             let blocks = blockchain.blockchain.filter(block => !rollbackedDocumentsIds.includes(block.data.id))
-
+            
             // return only the data
             return blocks.filter(block => block.index != 0).map(block => block.data)        
         } else {
@@ -118,21 +121,31 @@ class Chain {
         }
     }
 
-    update(id, doc){
+    async update(chainId, doc){
+        const chainNodesBlocks = await blocksNodes.getActivesChainNodesBlocks(chainId)        
+        const previousNodes = await blocksNodes.getLeafNodesBlocksIds(chainId)
+
+        // get all blocks from hosts
+        const raw = helpers.aggregateBlockchain(this.name, chainId, chainNodesBlocks)
+
         // rebuild the blockchain from the blockchain owners
-        const raw = helpers.aggregateBlockchain(this.name, id)
+        let blockchain = new blockchains.Blockchain(raw)
 
         // check blockchain integrity
-        let blockchain = new blockchains.Blockchain(raw)
-        
         if (blockchain.validateChainIntegrity()){
             // add a block
-            blockchain.add({id:helpers.generateGUID(), ...doc}, helpers.TransactionEnum.COMMIT)
+            const block = blockchain.add({id:helpers.generateGUID(), ...doc}, helpers.TransactionEnum.COMMIT)
 
             // spread the modifications on each blockchain owner
-            helpers.spreadBlockchain(this.name, id, blockchain.toJSON())      
+            // helpers.spreadBlockchain(this.name, chainId, blockchain.toJSON())      
+            const hosts = await hostsNode.getActives()        
+
+            // add blocks to the graph
+            const usedHosts = helpers.spreadBlockToHosts(this.name, chainId, block.toJSON(), hosts) 
             
-            return {id:id, commitedCount:1}
+            await this.mapBlock(block, chainId, usedHosts, this.name, previousNodes)
+            
+            return {id:chainId, commitedCount:1}
         } else {
             return {error:"blockchain is broken"}
         }  

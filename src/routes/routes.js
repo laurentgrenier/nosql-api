@@ -18,8 +18,8 @@ const instantsPublisher = new caches.InstantsPublisher()
 const articlesNode = new graph.ArticlesNode()
 const editorsNode = new graph.EditorsNode()
 const writesRelation = new graph.WritesRelation()
-const blocksNode = new graph.BlocksNode()
-const chainsRelation = new graph.ChainsRelation()
+const blocksNodes = new graph.BlocksNodes()
+const chainsRelation = new graph.ChainedToRelation()
 
 // import blockchain
 const notesChain = new blockchain.NotesChain()
@@ -283,7 +283,7 @@ router.post('/instants/:id', async (req, res) => {
 // get all blocks from the graph
 router.get('/nodes/blocks', async (req, res) => {
     try{        
-        const data = await blocksNode.findAll()
+        const data = await blocksNodes.findAll()
         res.json(data)
     }
     catch(error){
@@ -294,7 +294,7 @@ router.get('/nodes/blocks', async (req, res) => {
 // get a block
 router.get('/nodes/blocks/:id', async (req, res) => {
     try{
-        const data = await blocksNode.findById(req.params.id)
+        const data = await blocksNodes.findById(req.params.id)
         res.json(data)
     }
     catch(error){
@@ -305,7 +305,7 @@ router.get('/nodes/blocks/:id', async (req, res) => {
 // add a block
 router.post('/nodes/blocks', async (req, res) => {
     try{
-        const data = await blocksNode.insertOne(req.body)
+        const data = await blocksNodes.insertOne(req.body)
         res.json(data)
     }
     catch(error){
@@ -327,7 +327,7 @@ router.put('/nodes/blocks', async (req, res) => {
 // delete a block
 router.delete('/nodes/blocks/:id', async (req, res) => {
     try{
-        const data = await blocksNode.delete(req.params.id)
+        const data = await blocksNodes.delete(req.params.id)
         res.json(data)
     }
     catch(error){
@@ -338,7 +338,7 @@ router.delete('/nodes/blocks/:id', async (req, res) => {
 // update a block
 router.patch('/nodes/blocks/:id', async (req, res) => {
     try{
-        const data = await blocksNode.update(req.params.id, req.body)
+        const data = await blocksNodes.update(req.params.id, req.body)
         res.json(data)
     }
     catch(error){
@@ -619,7 +619,7 @@ router.post('/blockchain/notes', async (req, res) => {
 // get the notes 
 router.get('/blockchain/notes/:id', async (req, res) => {
     try{
-        const data = notesChain.findById(req.params.id)
+        const data = await notesChain.findById(req.params.id)
         res.json(data)
     }
     catch(error){
@@ -630,7 +630,7 @@ router.get('/blockchain/notes/:id', async (req, res) => {
 // add a note to the notes list
 router.patch('/blockchain/notes/:id', async (req, res) => {
     try{
-        const data = notesChain.update(req.params.id, req.body)
+        const data = await notesChain.update(req.params.id, req.body)
         res.json(data)
     }
     catch(error){

@@ -12,11 +12,17 @@ class Node {
         this.name = name
     }
 
+    async exec(query){
+        const result = await session.run(query)        
+        return helpers.parseRequestResult(result)
+    }
+
     async findAll(kvs=null){
+        let query = null
         if (kvs){
-            const query = helpers.getNodeFindByKeysValuesQuery(this.name, kvs) 
+            query = helpers.getNodeFindByKeysValuesQuery(this.name, kvs) 
         } else {
-            const query = helpers.getNodeFindAllQuery(this.name)
+            query = helpers.getNodeFindAllQuery(this.name)
         }
          
         const result = await session.run(query)        
@@ -24,10 +30,11 @@ class Node {
     }
 
     async find(kvs=null){
+        let query = null
         if (kvs){
-            const query = helpers.getNodeFindByKeysValuesQuery(this.name, kvs) 
+            query = helpers.getNodeFindByKeysValuesQuery(this.name, kvs) 
         } else {
-            const query = helpers.getNodeFindAllQuery(this.name)
+            query = helpers.getNodeFindAllQuery(this.name)
         }
          
         const result = await session.run(query)

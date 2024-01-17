@@ -200,3 +200,19 @@ Envoyez votre requête et le résultat par tchat privé sur Teams.
 
 MATCH servers = (:Server{name:"San Francisco"})-[netlinks:OpticalFiber*]->(:Server{name:"Tokyo"}) 
 RETURN reduce(total=0.0, netlink in netlinks | netlink.speed + total) / size(netlinks)
+
+
+MATCH path=(leaf:Block{chain_id:"wzy63w0diihu77xb"})-[:CHAINED_TO*]->(root:Block{chain_id:"wzy63w0diihu77xb"})
+WHERE NOT (root)-[:CHAINED_TO]->() AND NOT ()-[:CHAINED_TO]->(leaf)
+WITH path,nodes(path) AS nodes
+MATCH (block:Block)-[:HOSTED_BY]->(host:Host) WHERE elementId(block) IN [n IN nodes | elementId(n)]
+RETURN DISTINCT host, block
+
+
+MATCH (b:Block{chain_id:"wzy63w0diihu77xb"}),
+    (b)-[:HOSTED_BY]->(host:Host{active:1})
+RETURN DISTINCT b.block_id, max(elementId(b))
+
+MATCH (b:Block{chain_id:"wzy63w0diihu77xb"}),
+    (b)-[:HOSTED_BY]->(h:Host{active:1})
+RETURN b.block_id AS block_id, elementId(b) AS id, h.name AS host_name
