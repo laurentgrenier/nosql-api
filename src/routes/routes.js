@@ -1,28 +1,20 @@
 const express = require('express');
 const router = express.Router()
-const models = require('../databases/mongo/models')
 const caches = require('../databases/redis/models')
 const graph = require('../databases/neo4j/models')
 const blockchain = require('../databases/blockchain/models')
-
-
-// import models 
-const plagues = new models.Plagues()
-const doctors = new models.Doctors()
+const BlockchainType = require('../enums/blockdb.enums').BlockchainTypeEnum
 
 // import caches 
-const usersCache = new caches.UsersCache()
-const instantsPublisher = new caches.InstantsPublisher()
+const hostsReadsCache = new caches.HostsReadsCache()
+const hostsWritesCache = new caches.HostsWritesCache()
 
 // import graphs
-const articlesNode = new graph.ArticlesNode()
-const editorsNode = new graph.EditorsNode()
-const writesRelation = new graph.WritesRelation()
 const blocksNodes = new graph.BlocksNodes()
-const chainsRelation = new graph.ChainedToRelation()
+const hostsNodes = new graph.HostsNodes()
 
 // import blockchain
-const notesChain = new blockchain.NotesChain()
+
 
 
 //////////////////////////////////////
@@ -38,244 +30,6 @@ router.get('/healthcheck', async (req, res) => {
     }
 })
 
-//////////////////////////////////////
-//             PLAGUES
-//////////////////////////////////////
-// get all plagues
-router.get('/plagues', async (req, res) => {
-    try{        
-        const data = await plagues.findAll(req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// add a plague
-router.post('/plagues', async (req, res) => {
-    try{
-        const data = await plagues.insertOne(req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// add multiple plagues
-router.put('/plagues', async (req, res) => {
-    try{
-        const data = await plagues.insertMany(req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// update a plague 
-router.patch('/plagues/:id', async (req, res) => {
-    try{
-        const data = await plagues.update(req.params.id, req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// delete a plague
-router.delete('/plagues/:id', async (req, res) => {
-    try{
-        const data = await plagues.delete(req.params.id)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// get one plague
-router.get('/plagues/:id', async (req, res) => {
-    try{
-        const data = await plagues.findById(req.params.id)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-//////////////////////////////////////
-//             DOCTORS
-//////////////////////////////////////
-// add a doctor
-router.post('/doctors', async (req, res) => {
-    try{
-        const data = await doctors.insertOne(req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// add many doctors
-router.put('/doctors', async (req, res) => {
-    try{
-        const data = await doctors.insertMany(req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// update a doctor
-router.patch('/doctors/:id', async (req, res) => {
-    try{
-        const data = await doctors.update(req.params.id, req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// delete a doctor
-router.delete('/doctors/:id', async (req, res) => {
-    try{
-        const data = await doctors.delete(req.params.id)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// get all doctors
-router.get('/doctors', async (req, res) => {
-    try{
-        const data = await doctors.findAll(req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// get one doctor
-router.get('/doctors/:id', async (req, res) => {
-    try{
-        const data = await doctors.findById(req.params.id)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// get within perimeter doctors
-router.get('/doctors/:id/within/:distance', async (req, res) => {
-    try{
-        // the doctor on which the perimeter is centered
-        let doctor = await doctors.findById(req.params.id)
-        // geo query
-        const data = await doctors.within(doctor, req.params.distance)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// get within perimeter doctors
-router.get('/doctors/:id/nearest/:count', async (req, res) => {
-    try{
-        // the doctor on which the perimeter is centered
-        let doctor = await doctors.findById(req.params.id)
-        // geo query
-        const data = await doctors.nearest(doctor, req.params.count)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-//////////////////////////////////////
-//             USERS
-//////////////////////////////////////
-// add an user
-router.post('/users/:id', async (req, res) => {
-    try{
-        const data = await usersCache.set(req.params.id, req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// get an user
-router.get('/users/:id', async (req, res) => {
-    try{
-        const data = JSON.parse(await usersCache.get(req.params.id))
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// delete an user
-router.delete('/users/:id', async (req, res) => {
-    try{
-        const data = await usersCache.del(req.params.id)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// get all users
-router.get('/users', async (req, res) => {
-    try{
-        const data = await usersCache.list()
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-
-//////////////////////////////////////
-//             INSTANTS
-//////////////////////////////////////
-// set an instant
-router.post('/instants', async (req, res) => {
-    try{
-        const data = await instantsPublisher.set("*", req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// set an instant
-router.post('/instants/:id', async (req, res) => {
-    try{
-        const data = await instantsPublisher.set(req.params.id, req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
 
 //////////////////////////////////////
 //             BLOCK NODE
@@ -345,271 +99,19 @@ router.patch('/nodes/blocks/:id', async (req, res) => {
         res.status(500).json({message: error.message})
     }
 })
-//////////////////////////////////////
-//             CHAINED_TO
-//////////////////////////////////////
-// get all chain relations from the graph
-router.get('/relations/chains', async (req, res) => {
-    try{        
-        const data = await chainsRelation.findAll()
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// add a chain relation
-router.post('/relations/chains/:fromNodeId/:toNodeId', async (req, res) => {
-    try{
-        const data = await chainsRelation.insertOne(req.params.fromNodeId, req.params.toNodeId, req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// get a chain relation
-router.get('/relations/chains/:id', async (req, res) => {
-    try{
-        const data = await chainsRelation.findById(req.params.id)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// delete a chain relation
-router.delete('/relations/chains/:id', async (req, res) => {
-    try{
-        const data = await chainsRelation.delete(req.params.id)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// update a chain relation
-router.patch('/relations/chains/:id', async (req, res) => {
-    try{
-        const data = await chainsRelation.update(req.params.id, req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-
-
-
-//////////////////////////////////////
-//             ARTCILES
-//////////////////////////////////////
-// get all articles from the graph
-router.get('/nodes/articles', async (req, res) => {
-    try{        
-        const data = await articlesNode.findAll()
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// get an article
-router.get('/nodes/articles/:id', async (req, res) => {
-    try{
-        const data = await articlesNode.findById(req.params.id)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// add an article
-router.post('/nodes/articles', async (req, res) => {
-    try{
-        const data = await articlesNode.insertOne(req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// add multiple articles
-router.put('/nodes/articles', async (req, res) => {
-    try{
-        const data = await articlesNode.insertMany(req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// delete an article
-router.delete('/nodes/articles/:id', async (req, res) => {
-    try{
-        const data = await articlesNode.delete(req.params.id)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// update an article
-router.patch('/nodes/articles/:id', async (req, res) => {
-    try{
-        const data = await articlesNode.update(req.params.id, req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-//////////////////////////////////////
-//             EDITORS
-//////////////////////////////////////
-// get all editors from the graph
-router.get('/nodes/editors', async (req, res) => {
-    try{        
-        const data = await editorsNode.findAll()
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// get an editor
-router.get('/nodes/editors/:id', async (req, res) => {
-    try{
-        const data = await editorsNode.findById(req.params.id)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// add an editor
-router.post('/nodes/editors', async (req, res) => {
-    try{
-        const data = await editorsNode.insertOne(req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// add multiple editors
-router.put('/nodes/editors', async (req, res) => {
-    try{
-        const data = await editorsNode.insertMany(req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// delete an editor
-router.delete('/nodes/editors/:id', async (req, res) => {
-    try{
-        const data = await editorsNode.delete(req.params.id)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// update an editor
-router.patch('/nodes/editors/:id', async (req, res) => {
-    try{
-        const data = await editorsNode.update(req.params.id, req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-//////////////////////////////////////
-//             WRITES
-//////////////////////////////////////
-// get all writes relations from the graph
-router.get('/relations/writes', async (req, res) => {
-    try{        
-        const data = await writesRelation.findAll()
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// add a write relation
-router.post('/relations/writes/:fromNodeId/:toNodeId', async (req, res) => {
-    try{
-        const data = await writesRelation.insertOne(req.params.fromNodeId, req.params.toNodeId, req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// get a write relation
-router.get('/relations/writes/:id', async (req, res) => {
-    try{
-        const data = await writesRelation.findById(req.params.id)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// delete a write relation
-router.delete('/relations/writes/:id', async (req, res) => {
-    try{
-        const data = await writesRelation.delete(req.params.id)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
-
-// update a write relation
-router.patch('/relations/writes/:id', async (req, res) => {
-    try{
-        const data = await writesRelation.update(req.params.id, req.body)
-        res.json(data)
-    }
-    catch(error){
-        res.status(500).json({message: error.message})
-    }
-})
 
 //////////////////////////////////////
 //             BLOCKCHAIN
 //////////////////////////////////////
-// add some notes 
-router.post('/blockchain/notes', async (req, res) => {
+// start a block chain 
+router.post('/blockdb/db/:chainType/:className', async (req, res) => {
     try{
-        const data = await notesChain.insertOne(req.body)
-        res.json(data)
+        if (!Object.values(BlockchainType).includes(req.params.chainType)){
+            throw "unknown chain type"
+        }
+        const genChain = new blockchain.GenChain(req.params.className)
+        const data = await genChain.insertOne(req.body, req.params.chainType)
+        res.json(data)        
     }
     catch(error){
         res.status(500).json({message: error.message})
@@ -617,9 +119,10 @@ router.post('/blockchain/notes', async (req, res) => {
 })
 
 // get the notes 
-router.get('/blockchain/notes/:id', async (req, res) => {
+router.get('/blockdb/db/:className/:id', async (req, res) => {
     try{
-        const data = await notesChain.findById(req.params.id)
+        const genChain = new blockchain.GenChain(req.params.className)
+        const data = await genChain.findById(req.params.id)
         res.json(data)
     }
     catch(error){
@@ -627,10 +130,11 @@ router.get('/blockchain/notes/:id', async (req, res) => {
     }        
 })
 
-// add a note to the notes list
-router.patch('/blockchain/notes/:id', async (req, res) => {
+// add blocks to a chain
+router.patch('/blockdb/db/:className/:id', async (req, res) => {
     try{
-        const data = await notesChain.update(req.params.id, req.body)
+        const genChain = new blockchain.GenChain(req.params.className)
+        const data = await genChain.update(req.params.id, req.body)
         res.json(data)
     }
     catch(error){
@@ -639,9 +143,10 @@ router.patch('/blockchain/notes/:id', async (req, res) => {
 })
 
 // delete a note from the notes list
-router.delete('/blockchain/notes/:id/note/:noteId', async (req, res) => {
+router.delete('/blockdb/db/:className/:id/:docId', async (req, res) => {
     try{
-        const data = notesChain.delete(req.params.id, req.params.noteId)
+        const genChain = new blockchain.GenChain(req.params.className)
+        const data = genChain.delete(req.params.id, req.params.docId)
         res.json(data)
     }
     catch(error){
@@ -649,17 +154,65 @@ router.delete('/blockchain/notes/:id/note/:noteId', async (req, res) => {
     }        
 })
 
-// 
-router.get('/blockchain/test', async (req, res) => {
-    try{
-        const data = notesChain.test()
+
+//////////////////////////////////////
+//             HOSTS NODES
+//////////////////////////////////////
+// get all hosts
+router.get('/blockdb/hosts', async (req, res) => {
+    try{        
+        const data = await hostsNodes.findAll()
         res.json(data)
     }
     catch(error){
         res.status(500).json({message: error.message})
-    }        
+    }
 })
 
+// update a block
+router.patch('/blockdb/hosts/:id', async (req, res) => {
+    try{
+        const data = await hostsNodes.update(req.params.id, req.body)
+        res.json(data)
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }
+})
+
+//////////////////////////////////////
+//             READS/WRITES
+//////////////////////////////////////
+// get all blocks from the graph
+router.get('/blockdb/stats/:hostname', async (req, res) => {
+    try{        
+        const reads = await hostsReadsCache.get(req.params.hostname)
+        const writes = await hostsWritesCache.get(req.params.hostname)
+        res.json({reads:reads?parseInt(reads):null, writes:writes?parseInt(writes):null})
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }
+})
+
+// get ios from all hosts
+router.get('/blockdb/stats', async (req, res) => {
+    try{                
+        // get all hosts
+        const hosts = JSON.parse(process.env.BLOCKCHAIN_HOSTS).map(h => h.name)
+        let ios = []
+        for(var i=0;i<hosts.length;i++){
+            const reads = await hostsReadsCache.get(hosts[i])
+            const writes = await hostsWritesCache.get(hosts[i])
+            ios.push({host:hosts[i], stats:{reads:(reads?parseInt(reads):null), writes:(writes?parseInt(writes):null)}})
+        }
+        
+        res.json({data:ios})
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }
+})
 
 
 module.exports = router;

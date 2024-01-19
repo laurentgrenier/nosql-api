@@ -1,10 +1,9 @@
 const Chain = require('./parents').Chain
-const helpers = require('./helpers')
 
-class NotesChain extends Chain {
-    constructor(){        
-        super('notes')
+class GenChain extends Chain {
+    constructor(name){        
+        super(name)
     }
 }
 
-exports.NotesChain = NotesChain
+exports.GenChain = GenChain

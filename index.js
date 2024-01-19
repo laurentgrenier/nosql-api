@@ -52,8 +52,7 @@ app.listen(3000, () => {
     console.log(`NoSQL API started at ${3000}`)
 })
 
-process.on('SIGINT',function () {
-    app.close()
+process.on('SIGINT',function () {    
     process.exit()
 })
   

@@ -1,5 +1,11 @@
 const fs = require('fs');
 const os = require('os')
+const BlockchainType = require('../../enums/blockdb.enums').BlockchainTypeEnum
+const caches = require('../redis/models')
+
+// import caches 
+const hostsReadsCache = new caches.HostsReadsCache()
+const hostsWritesCache = new caches.HostsWritesCache()
 
 const TransactionEnum = Object.freeze({
     COMMIT:"COMMIT",
@@ -47,11 +53,14 @@ const readBlockchain = (chainId, className, blocks) => {
     try {
         // get each hostname
         const hostnames = [...new Set(blocks.map(b => b.hostname))]
-        
+                
         // read blocks from each listed host
         for(var i=0;i<hostnames.length;i++){
             blocksIndexesToRead = blocks.filter(b => b.hostname == hostnames[i]).map(b => parseInt(b.block_index))
             result = result.concat(readBlocks(chainId, className, hostnames[i], blocksIndexesToRead))
+            
+            // stats io read
+            hostsReadsCache.asyncIncr(hostnames[i],1)
         }
 
         return result.sort((b1,b2)=>(b1.index > b2.index ? 1:-1))
@@ -60,6 +69,30 @@ const readBlockchain = (chainId, className, blocks) => {
         console.debug("no file found")        
     }
     return result 
+}
+
+const parseBlocksData = (blocks, chainType) => {
+    let result = null
+    blocks = blocks.filter(block => block.index != 0)
+        
+    switch(chainType){
+        case BlockchainType.CUMULATIVE_RECORD:
+            result = {}            
+            for(var i=0;i<blocks.length;i++){
+                result = Object.assign(result,blocks[i].data)
+            }
+            break;
+        case BlockchainType.SERIES:
+            result = blocks.map(block => block.data)
+            break;
+        case BlockchainType.VERSIONED_RECORD:
+            result = Object.assign({version:blocks.length}, blocks[blocks.length -1].data)            
+            break;
+        default:
+            throw "unknown blockchain type"
+    }
+
+    return result
 }
 
 const readBlocks = (chainId, className, hostname, blocksIndexesToRead) => {    
@@ -147,10 +180,16 @@ const spreadBlockToHosts = (name, id, block, hosts) => {
     let usedHosts = []
     hosts = hosts.sort(() => (Math.random() > .5) ? 1 : -1)
     const replicationFactor = JSON.parse(process.env.BLOCKCHAIN_REPLICATION_FACTOR)
-    
+        
     for(var i=0;i<replicationFactor;i++){ 
-        if (writeBlock(hosts[i].name, name, id, block)){
-            usedHosts.push(hosts[i])
+        try {
+            if (writeBlock(hosts[i].name, name, id, block)){
+                usedHosts.push(hosts[i])
+                // stats io writes
+                hostsWritesCache.asyncIncr(hosts[i].name,1)
+            }
+        } catch (error) {                     
+             console.error("spreadBlockToHosts:", error)                
         }
     }
 
@@ -172,3 +211,4 @@ exports.TransactionEnum = TransactionEnum
 exports.readCluster = readCluster
 exports.spreadBlockToHosts = spreadBlockToHosts
 exports.getAllHosts = getAllHosts
+exports.parseBlocksData = parseBlocksData

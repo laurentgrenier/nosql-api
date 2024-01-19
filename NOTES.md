@@ -216,3 +216,8 @@ RETURN DISTINCT b.block_id, max(elementId(b))
 MATCH (b:Block{chain_id:"wzy63w0diihu77xb"}),
     (b)-[:HOSTED_BY]->(h:Host{active:1})
 RETURN b.block_id AS block_id, elementId(b) AS id, h.name AS host_name
+
+MATCH (b:Block{chain_id:"72drtw7ujsca9dbl"}),
+  (b)-[:HOSTED_BY]->(h:Host{active:1})
+RETURN b.block_index AS block_index, elementId(b) AS id, h.name AS hostname
+

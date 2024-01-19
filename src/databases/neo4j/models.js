@@ -5,24 +5,6 @@ const helpers = require('./helpers')
 const Node = parents.Node
 const Relation = parents.Relation
 
-class ArticlesNode extends Node {
-    constructor(){
-        super('Article')
-    }
-}
-
-class EditorsNode extends Node {
-    constructor(){
-        super('Editor')
-    }
-}
-
-class WritesRelation extends Relation {
-    constructor(){
-        super('WRITES', 'Editor', 'Article')
-    }    
-}
-
 class BlocksNodes extends Node {
     constructor(){
         super(GraphNodeClassEnum.BLOCK)
@@ -50,7 +32,7 @@ class BlocksNodes extends Node {
     }
 }
 
-class HostsNode extends Node {
+class HostsNodes extends Node {
     constructor(){
         super(GraphNodeClassEnum.HOST)
     }
@@ -59,6 +41,20 @@ class HostsNode extends Node {
         return this.findAll({active:HostStatus.ACTIVE})
     }
 }
+
+class BlockchainsNodes extends Node {
+    constructor(){
+        super(GraphNodeClassEnum.BLOCKCHAIN)
+    }
+}
+
+
+class ClustersNodes extends Node {
+    constructor(){
+        super(GraphNodeClassEnum.CLUSTER)
+    }
+}
+
 
 class ChainedToRelation extends Relation {
     constructor(){
@@ -78,12 +74,27 @@ class CopyOfRelation extends Relation {
     }    
 }
 
+class PartOfRelation extends Relation {
+    constructor(){
+        super(GraphRelationClassEnum.PART_OF, GraphNodeClassEnum.BLOCKCHAIN, GraphNodeClassEnum.CLUSTER)
+    }    
+}
 
-exports.ArticlesNode = ArticlesNode
-exports.EditorsNode = EditorsNode
-exports.WritesRelation = WritesRelation
+class RootOfRelation extends Relation {
+    constructor(){
+        super(GraphRelationClassEnum.ROOT_OF, GraphNodeClassEnum.BLOCK, GraphNodeClassEnum.BLOCKCHAIN)
+    }    
+}
+
+
+
 exports.BlocksNodes = BlocksNodes
+exports.HostsNodes = HostsNodes
+exports.BlockchainsNodes = BlockchainsNodes
+exports.ClustersNodes = ClustersNodes
+
 exports.ChainedToRelation = ChainedToRelation
 exports.CopyOfRelation = CopyOfRelation
 exports.HostedByRelation = HostedByRelation
-exports.HostsNode = HostsNode
+exports.PartOfRelation = PartOfRelation
+exports.RootOfRelation = RootOfRelation

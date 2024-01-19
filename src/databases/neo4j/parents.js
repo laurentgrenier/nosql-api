@@ -43,6 +43,7 @@ class Node {
     }
 
     async insertOne(doc){          
+        doc = Object.assign({created_at:new Date().getTime(), updated_at:null},doc)
         const query = helpers.getNodeInsertOneQuery(this.name, doc)
         const result = await session.run(query, doc)                
         return helpers.parseNodeResult(result)
@@ -55,6 +56,7 @@ class Node {
 
         for(let doc of docs){
             // static fields list
+            doc = Object.assign({created_at:new Date().getTime(), updated_at:null},doc)
             query = helpers.getNodeInsertOneQuery(this.name, doc)
             result = await session.run(query, doc)    
             
@@ -66,6 +68,7 @@ class Node {
     }
 
     async update(id, doc){        
+        doc = Object.assign({updated_at:new Date().getTime()},doc)
         const query = helpers.getNodeUpdateQuery(this.name, id, doc)
         const result = await session.run(query)
         return helpers.parseNodeResult(result)
@@ -111,7 +114,8 @@ class Relation {
         return helpers.parseRelationsResult(result)
     }
 
-    async insertOne(fromNodeId, toNodeId, doc){                
+    async insertOne(fromNodeId, toNodeId, doc){               
+        doc = Object.assign({created_at:new Date().getTime(), updated_at:null},doc) 
         const query = helpers.getRelationInsertOneQuery(this.name, this.startClass, this.endClass, fromNodeId, toNodeId, doc)        
         const result = await session.run(query)                
         return helpers.parseRelationsResult(result)
@@ -122,6 +126,7 @@ class Relation {
     }
 
     async update(id, doc){        
+        doc = Object.assign({updated_at:new Date().getTime()},doc)
         const query = helpers.getRelationUpdateQuery(this.name, id, doc)
         const result = await session.run(query)
         return helpers.parseRelationResult(result)

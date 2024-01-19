@@ -40,6 +40,7 @@ class Blockchain{
     }
 
     init(){
+        this.id = helpers.generateId()       
         this.blockchain = [this.createGenesisBlock()];
     }
 
@@ -83,7 +84,7 @@ class Blockchain{
             if(currentBlock.hash !== currentBlock.generateHash()){
                 return false;
             }
-            if(currentBlock.previousHash !== previousBlock.hash){
+            if(currentBlock.previousHash !== previousBlock.hash){                
                 return false;
             }
         }
