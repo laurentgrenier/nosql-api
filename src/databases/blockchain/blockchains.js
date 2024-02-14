@@ -5,7 +5,8 @@ const helpers = require('./helpers')
 
 //create a JavaScript class to represent a Block
 class Block{
-  constructor(index, timestamp, data, previousHash, transaction,  hash = null){
+  constructor(chainId, index, timestamp, data, previousHash, transaction,  hash = null){
+    this.chainId = chainId
     this.index = index;
     this.timestamp = timestamp;
     this.data = data;
@@ -15,11 +16,12 @@ class Block{
   }
 
   generateHash(){
-    return SHA256(JSON.stringify(this.data)+ this.index + this.timestamp + this.previousHash).toString(CryptoJS.enc.Hex)
+    return SHA256(JSON.stringify(this.data) + this.chainId + this.index + this.timestamp + this.previousHash).toString(CryptoJS.enc.Hex)
   }
 
   toJSON(){
     return {
+        chain_id:this.chainId,
         index:this.index,
         timestamp:this.timestamp,
         data:this.data,
@@ -48,11 +50,11 @@ class Blockchain{
         
         this.blockchain = []
         for(let block of blockchain){            
-            this.blockchain.push(new Block(block.index, block.timestamp, block.data, block.previousHash, block.transaction, block.hash))
+            this.blockchain.push(new Block(this.id, block.index, block.timestamp, block.data, block.previousHash, block.transaction, block.hash))
         }
     }
     createGenesisBlock(){
-        return new Block(0, new Date().getTime(), "origin", "0", helpers.TransactionEnum.COMMIT);
+        return new Block(this.id, 0, new Date().getTime(), "origin", "0", helpers.TransactionEnum.COMMIT);
     }
 
     getTheLatestBlock(){
@@ -61,6 +63,7 @@ class Blockchain{
 
     add(doc, transaction=helpers.TransactionEnum.COMMIT){
         let block = new Block(
+            this.id,
             this.blockchain.length,
             new Date().getTime(),
             doc,            

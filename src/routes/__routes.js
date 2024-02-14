@@ -143,10 +143,10 @@ router.patch('/blockdb/db/:className/:id', async (req, res) => {
 })
 
 // delete a note from the notes list
-router.delete('/blockdb/db/:className/:id/:docId', async (req, res) => {
+router.delete('/blockdb/db/:className/:chainId/:docId', async (req, res) => {
     try{
         const genChain = new blockchain.GenChain(req.params.className)
-        const data = genChain.delete(req.params.id, req.params.docId)
+        const data = genChain.delete(req.params.chainId, req.params.docId)
         res.json(data)
     }
     catch(error){
@@ -200,6 +200,25 @@ router.get('/blockdb/stats', async (req, res) => {
     try{                
         // get all hosts
         const hosts = JSON.parse(process.env.BLOCKCHAIN_HOSTS).map(h => h.name)
+        let ios = []
+        for(var i=0;i<hosts.length;i++){
+            const reads = await hostsReadsCache.get(hosts[i])
+            const writes = await hostsWritesCache.get(hosts[i])
+            ios.push({host:hosts[i], stats:{reads:(reads?parseInt(reads):null), writes:(writes?parseInt(writes):null)}})
+        }
+        
+        res.json({data:ios})
+    }
+    catch(error){
+        res.status(500).json({message: error.message})
+    }
+})
+
+
+// get ios from all hosts
+router.post('/test/message', async (req, res) => {
+    try{                
+        
         let ios = []
         for(var i=0;i<hosts.length;i++){
             const reads = await hostsReadsCache.get(hosts[i])
